@@ -5,7 +5,8 @@ class HealthchecksTests(unittest.TestCase):
 
     def test_run(self):
         checks = [
-            healthchecks.Healthcheck('redis')
+            healthchecks.RedisHealthcheck('redis sessions'),
+            healthchecks.MysqlHealthcheck('mysql data'),
         ]
         hc = healthchecks.Healthchecks(checks)
         self.assertTrue(hc.run())

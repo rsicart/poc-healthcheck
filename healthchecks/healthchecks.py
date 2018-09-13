@@ -2,11 +2,34 @@ import sys
 
 class Healthcheck:
 
-    def __init__(self, name):
-        self.name = name
+    def __init__(self):
+        self.type = None
 
     def run(self):
-        print(self.name)
+        raise NotImplementedError()
+
+
+class MysqlHealthcheck(Healthcheck):
+
+    def __init__(self, name):
+        super(Healthcheck, self).__init__()
+        self.name = name
+        self.type = "mysql"
+
+    def run(self):
+        print("Name: {} - Type: {}".format(self.name, self.type))
+        return True
+
+
+class RedisHealthcheck(Healthcheck):
+
+    def __init__(self, name):
+        super(Healthcheck, self).__init__()
+        self.name = name
+        self.type = "redis"
+
+    def run(self):
+        print("Name: {} - Type: {}".format(self.name, self.type))
         return True
 
 
@@ -35,15 +58,15 @@ if __name__ == '__main__':
         print("Error loading settings, exiting")
         sys.exit(1)
 
-    redis_checks = settings.HEALTHCHECKS_REDIS
-
     checks = []
+
+    redis_checks = settings.HEALTHCHECKS_REDIS
     for name, check in redis_checks.items():
-        checks.append(Healthcheck(check['name']))
+        checks.append(RedisHealthcheck(check['name']))
 
     mysql_checks = settings.HEALTHCHECKS_MYSQL
     for name, check in mysql_checks.items():
-        checks.append(Healthcheck(check['name']))
+        checks.append(MysqlHealthcheck(check['name']))
 
     hc = Healthchecks(checks)
     hc.run()
