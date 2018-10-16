@@ -1,5 +1,6 @@
 import sys
 import pymysql
+import redis
 
 class Healthcheck:
 
@@ -49,14 +50,31 @@ class MysqlHealthcheck(Healthcheck):
 
 class RedisHealthcheck(Healthcheck):
 
-    def __init__(self, name):
+    def __init__(self, name, host='localhost', port=6379, password='', db='0'):
         super(Healthcheck, self).__init__()
         self.name = name
         self.type = "redis"
+        self.host = host
+        self.port = port
+        self.password = password
+        self.db = db
 
     def run(self):
         print("Name: {} - Type: {}".format(self.name, self.type))
-        return True
+        key = 'toto'
+        value = 'toto42'
+        try:
+            r = redis.Redis(host=self.host, port=self.port, password=self.password, db=self.db, socket_timeout=3)
+            r.set(key, value)
+            result = r.get(key)
+        except:
+            # problem connecting to redis host
+            return False
+
+        if result == value:
+            return True
+
+        return False
 
 
 class Healthchecks:
@@ -88,7 +106,11 @@ if __name__ == '__main__':
 
     redis_checks = settings.HEALTHCHECKS_REDIS
     for name, check in redis_checks.items():
-        checks.append(RedisHealthcheck(check['name']))
+        checks.append(RedisHealthcheck(check['name'],
+                                        host=check['host'],
+                                        port=check['port'],
+                                        password=check['password'],
+                                        db=check['db']))
 
     mysql_checks = settings.HEALTHCHECKS_MYSQL
     for name, check in mysql_checks.items():
