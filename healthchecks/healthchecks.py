@@ -65,7 +65,9 @@ class RedisHealthcheck(Healthcheck):
         value = 'toto42'
         try:
             r = redis.Redis(host=self.host, port=self.port, password=self.password, db=self.db, socket_timeout=3)
-            r.set(key, value)
+            # expire in 10s
+            # set only if key doesn't exist
+            r.set(key, value, ex=10, nx=True)
             result = r.get(key)
         except:
             # problem connecting to redis host
